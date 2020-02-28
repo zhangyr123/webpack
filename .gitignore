@@ -1,2 +1,5 @@
 /webpack1/node_modules/
+/webpack1/dist/
+
 /webpack2/node_modules/
+/webpack2/dist/
