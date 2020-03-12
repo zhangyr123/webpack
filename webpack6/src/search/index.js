@@ -4,6 +4,7 @@ import React from 'react'
 import ReactDOM from 'react-dom'
 // import '../../common'
 import logo from './images/logo.jpg'
+import largeNumber from 'webpack7'
 import { a } from './tree-shaking'
 import './search.less'
 
@@ -32,11 +33,16 @@ class Search extends React.Component {
     render() {
         // const funcA = a()
         const { Text } = this.state
+
+        let addResult = largeNumber('999', '1')
         return <div className="search-text">
             {
                 Text ? <Text/> : null
             }
-            Search Text  修改  二次修改 <img src={ logo } onClick={ this.loadComponent.bind(this) } />
+            {
+                addResult
+            }
+            Search Text 21 修改 二次修改 <img src={ logo } onClick={ this.loadComponent.bind(this) } />
         </div>
     }
 }

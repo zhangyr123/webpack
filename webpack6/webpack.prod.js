@@ -8,6 +8,7 @@ const OptimizeCssAssetsWebpackPlugin = require('optimize-css-assets-webpack-plug
 const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin')
+const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin')
 
 const setMPA = () => {
     const entry = {}
@@ -157,7 +158,16 @@ module.exports = {
         //         }
         //     ]
         // }),
-        // new webpack.optimize.ModuleConcatenationPlugin()
+        // new webpack.optimize.ModuleConcatenationPlugin(),
+        new FriendlyErrorsWebpackPlugin(),
+        function() {
+            this.hooks.done.tap('done', (stats) => {// webpack4之前的写法把hook.done.tap改成plugin
+                if(stats.compilation.errors && stats.compilation.errors.length && process.argv.indexOf('--watch')==-1) {
+                    console.log('build error')
+                    process.exit(1)
+                }
+            })
+        }
     ].concat(htmlWebpackPlugins),
     devtool: 'none',
     // optimization: {
@@ -182,5 +192,6 @@ module.exports = {
                 }
             }
         }
-    }
+    },
+    stats: 'errors-only'
 }
