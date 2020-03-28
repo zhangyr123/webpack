@@ -9,6 +9,18 @@ const HtmlWebpackPlugin = require('html-webpack-plugin')
 const { CleanWebpackPlugin } = require('clean-webpack-plugin')
 const HtmlWebpackExternalsPlugin = require('html-webpack-externals-plugin')
 const FriendlyErrorsWebpackPlugin = require('friendly-errors-webpack-plugin')
+const SpeedMeasureWebpackPlugin = require('speed-measure-webpack-plugin')
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer')
+const HappyPack = require('happypack')
+const TerserPlugin = require('terser-webpack-plugin')
+const HardSourceWebpackPlugin = require('hard-source-webpack-plugin')
+const PurgecssPlugin = require('purgecss-webpack-plugin')
+
+const smp = new SpeedMeasureWebpackPlugin()
+
+const PATHS = {
+    src: path.join(__dirname, 'src')
+}
 
 const setMPA = () => {
     const entry = {}
@@ -51,6 +63,7 @@ const setMPA = () => {
 
 const { entry, htmlWebpackPlugins } = setMPA()
 
+// module.exports = smp.wrap({
 module.exports = {
     entry: entry,
     output: {
@@ -63,8 +76,22 @@ module.exports = {
             // 解析ES6
             {
                 test: /\.js$/,
+                // exclude: 'node_modules',
+                include: path.resolve('src'), // 只对项目根目录下的src目录中的文件采用babel-loader
                 use: [
-                    'babel-loader',
+                    {
+                        loader: 'thread-loader',
+                        options: {
+                            workers: 3
+                        }
+                    },
+                    {
+                        loader: 'babel-loader',
+                        options: {
+                            cacheDirectory: true
+                        }
+                    },
+                    // 'happypack/loader'
                     // 'eslint-loader'
                 ]
             },
@@ -111,7 +138,31 @@ module.exports = {
                         options: {
                             name: '[name]_[hash:8][ext]' // 图片和字体的文件指纹
                         }
-                    }
+                    },
+                    {
+                        loader: 'image-webpack-loader',
+                        options: {
+                            mozjpeg: {
+                                progressive: true,
+                                quality: 65
+                            },
+                            // optipng.enabled: false will disable optipng
+                            optipng: {
+                                enabled: false,
+                            },
+                            pngquant: {
+                                quality: [0.65, 0.90],
+                                speed: 4
+                            },
+                            gifsicle: {
+                                interlaced: false,
+                            },
+                            // the webp option will enable WEBP
+                            webp: {
+                                quality: 75
+                            }
+                        }
+                    },
                 ]
                 // use: [
                 //     {
@@ -167,7 +218,18 @@ module.exports = {
                     process.exit(1)
                 }
             })
-        }
+        },
+        // new BundleAnalyzerPlugin(),
+        // new HappyPack({
+        //     loaders: ['babel-loader']
+        // }),
+        new webpack.DllReferencePlugin({
+            manifest: require('./build/library/library.json')
+        }),
+        new HardSourceWebpackPlugin(),
+        new PurgecssPlugin({
+            paths: glob.sync(`${PATHS.src}/**/*`, {nodir: true})
+        })
     ].concat(htmlWebpackPlugins),
     devtool: 'none',
     // optimization: {
@@ -191,7 +253,22 @@ module.exports = {
                     minChunks: 2 // 要求至少引用的次数为两次。
                 }
             }
-        }
+        },
+        minimizer: [
+            new TerserPlugin({
+                parallel: true,
+                cache: true
+            })
+        ]
     },
-    stats: 'errors-only'
+    resolve: {
+        alias: {
+            'react': path.resolve(__dirname, './node_modules/react/umd/react.production.min.js'),
+            'react-dom': path.resolve(__dirname, './node_modules/react-dom/umd/react-dom.production.min.js')
+        },
+        extensions: ['.js'],
+        mainFields: ['main']
+    },
+    // stats: 'errors-only'
+// })
 }
