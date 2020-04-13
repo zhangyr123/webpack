@@ -36,3 +36,9 @@
 
 /simplepack/node_modules/
 /simplepack/dist/
+
+/loader-order/node_modules/
+/loader-order/dist/
+
+/raw-loader/node_modules/
+/raw-loader/dist/
