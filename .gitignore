@@ -42,3 +42,6 @@
 
 /raw-loader/node_modules/
 /raw-loader/dist/
+
+/my-plugin/node_modules/
+/my-plugin/dist/
